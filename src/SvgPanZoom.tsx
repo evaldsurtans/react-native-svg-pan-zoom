@@ -291,21 +291,22 @@ export class SvgPanZoom extends Component<Props, State> {
   _onLayout = (event) => {
     this.mainViewRef.measure((x, y, w, h, pageX, pageY) => {
 
-      this.setState({
-        viewDimensions: {
-          height: h,
-          width: w,
-          pageX: pageX,
-          pageY: pageY,
-        },
+      if(!this.state.layoutKnown) {
+        this.setState({
+          viewDimensions: {
+            height: h,
+            width: w,
+            pageX: pageX,
+            pageY: pageY,
+          },
 
-        layoutKnown: true,
-      });
+          layoutKnown: true,
+        });
 
-      setTimeout(() => {
-        this.refreshViewTransform();
-      }, 100);
-
+        setTimeout(() => {
+          this.refreshViewTransform();
+        }, 500);
+      }
     });
 
   }
