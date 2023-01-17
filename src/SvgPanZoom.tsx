@@ -141,7 +141,7 @@ export default class SvgPanZoom extends Component<Props, State> {
       onPanResponderMove: (evt, gestureState) => {
         const touches = evt.nativeEvent.touches
 
-        // console.log('evt: ' + evt.target + '*************')
+        console.log('evt: ' + evt.target + '*************')
 
         if(this.dropNextEvt > 0) {
           this.dropNextEvt--
@@ -258,7 +258,7 @@ export default class SvgPanZoom extends Component<Props, State> {
   }
 
   public zoomToPoint = (x: number, y: number, scale: number, duration: number = 700) => {
-
+    console.log("zoomToPoint");
     const { viewDimensions } = this.state
 
     const { canvasHeight, canvasWidth } = this.props
@@ -306,7 +306,7 @@ export default class SvgPanZoom extends Component<Props, State> {
   }
 
   processPinch = (x1, y1, x2, y2) => {
-
+    console.log("processPinch");
     const distance = calcDistance(x1, y1, x2, y2);
 
     if (!this.state.isScaling) {
