@@ -247,6 +247,7 @@ export default class SvgPanZoom extends Component<Props, State> {
   }
 
   getInitialViewTransform(canvasWidth: number, canvasHeight, scale: number, initialTranslation?: any): ViewTransform {
+    console.log("initialTranslation", initialTranslation);
     return viewTransformMult(
       createTranslationMatrix(
         -(canvasWidth - canvasWidth * scale) / 2 + initialTranslation ? initialTranslation.x : 0,
