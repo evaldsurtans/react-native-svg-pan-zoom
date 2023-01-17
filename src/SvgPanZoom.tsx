@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, {Component, useState} from 'react';
 
 import {
   View,
@@ -46,6 +46,7 @@ export interface Props {
   viewStyle?: ViewStyle,
   initialTranslation?: Point,
   onZoom?: (zoom: number) => void
+  onLongPress?: (position: {x: number, y: number}, pagePosition: {x: number, y: number}) => void
 }
 
 export interface State {
@@ -126,10 +127,12 @@ export class SvgPanZoom extends Component<Props, State> {
       //ViewTransform animation state
       TranslationAnimation: new Animated.ValueXY({ x: vt.translateX, y: vt.translateY }),
       scaleAnimation: new Animated.Value(vt.scaleX),
+
     }
   }
 
-  dropNextEvt = 0
+  timeoutLongPress = 0;
+  dropNextEvt = 0;
 
   componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<State>, snapshot?: any) {
     if(this.state.initialTranslation.x !== this.props.initialTranslation.x ||
@@ -150,18 +153,38 @@ export class SvgPanZoom extends Component<Props, State> {
     this.state.scaleAnimation.addListener((zoom)=> { this.props.onZoom(zoom.value) })
 
     this.prInstance = PanResponder.create({
-      onStartShouldSetPanResponder: (evt, gestureState) => false,
+      onStartShouldSetPanResponder: (evt, gestureState) => true,
       onStartShouldSetPanResponderCapture: (evt, gestureState) => false,
       onMoveShouldSetPanResponder: (evt, gestureState) => true,
       onMoveShouldSetPanResponderCapture: (evt, gestureState) => false,
       onPanResponderGrant: (evt, gestureState) => {
+
         // Set self for filtering events from other PanResponderTarges
         if (this.prTargetSelf == null) {
           if (this.prTargetOuter == null) { this.prTargetOuter = evt.currentTarget }
           if (evt.target !== evt.currentTarget) { this.prTargetSelf = evt.target }
         }
+
+        const touches = evt.nativeEvent.touches
+
+        //@ts-ignore
+        this.timeoutLongPress = setTimeout(() => {
+          if(this.props.onLongPress) {
+            if(touches.length === 1) {
+              this.props.onLongPress({
+                x: touches[0].locationX,
+                y: touches[0].locationY
+              }, {
+                x: touches[0].pageX,
+                y: touches[0].pageY
+              });
+            }
+          }
+        }, 2000);
       },
       onPanResponderMove: (evt, gestureState) => {
+
+        clearTimeout(this.timeoutLongPress);
         const touches = evt.nativeEvent.touches
 
         if(this.dropNextEvt > 0) {
@@ -189,6 +212,7 @@ export class SvgPanZoom extends Component<Props, State> {
       },
       onPanResponderTerminationRequest: (evt, gestureState) => true,
       onPanResponderRelease: (evt, gestureState) => {
+        clearTimeout(this.timeoutLongPress);
         this.setState({
           isScaling: false,
           isMoving: false,
