@@ -111,8 +111,8 @@ export function getBoundedPinchTransform(oldTransform: ViewTransform, newTransfo
 }
 
 export function getBoundedTouchTransform(
-  initialTransform: ViewTransform, oldTransform: ViewTransform, newTransform: ViewTransform,
-  viewDim: ViewDimensions, canvasWidth: number, canvasHeight: number
+    initialTransform: ViewTransform, oldTransform: ViewTransform, newTransform: ViewTransform,
+    viewDim: ViewDimensions, canvasWidth: number, canvasHeight: number
 ): ViewTransform {
   let boundedTransform = { ...newTransform }
 
@@ -141,7 +141,7 @@ export function getBoundedTouchTransform(
 
   //Entire Canvas can be seen within the view
   if (scaledCanvas.width < viewDim.width &&
-    scaledCanvas.height < viewDim.height) {
+      scaledCanvas.height < viewDim.height) {
 
     maxBounds = {
       x: (viewDim.width - scaledCanvas.width) + extendLimit - zoomDisplacement.x,
@@ -182,7 +182,7 @@ export function getBoundedTouchTransform(
     }
   }
 
-  boundedTransform.translateX = Math.min(Math.max(boundedTransform.translateX, minBounds.x), maxBounds.x)
+  boundedTransform.translateX = Math.min(Math.max(boundedTransform.translateX , minBounds.x), maxBounds.x)
   boundedTransform.translateY = Math.min(Math.max(boundedTransform.translateY, minBounds.y), maxBounds.y)
 
   return boundedTransform
