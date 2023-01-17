@@ -47,6 +47,7 @@ export interface Props {
   initialTranslation?: Point,
   onZoom?: (zoom: number) => void
   onLongPress?: (position: {x: number, y: number}, pagePosition: {x: number, y: number}) => void
+  onPress?: (position: {x: number, y: number}, pagePosition: {x: number, y: number}) => void
 }
 
 export interface State {
@@ -166,6 +167,18 @@ export class SvgPanZoom extends Component<Props, State> {
         }
 
         const touches = evt.nativeEvent.touches
+
+        if(this.props.onLongPress) {
+          if(touches.length === 1) {
+            this.props.onPress({
+              x: touches[0].locationX,
+              y: touches[0].locationY
+            }, {
+              x: touches[0].pageX,
+              y: touches[0].pageY
+            });
+          }
+        }
 
         //@ts-ignore
         this.timeoutLongPress = setTimeout(() => {
