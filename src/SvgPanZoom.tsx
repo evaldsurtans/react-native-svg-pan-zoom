@@ -40,6 +40,7 @@ export interface Props {
   canvasWidth?: number,
   canvasStyle?: ViewStyle,
   viewStyle?: ViewStyle,
+  initialTranslation?: Point,
   onZoom?: (zoom: number) => void
 }
 
@@ -48,17 +49,17 @@ export interface State {
   layoutKnown: boolean,
   viewDimensions: ViewDimensions,
 
-  //ViewTransform 
+  //ViewTransform
   viewTransform: ViewTransform
 
-  //Pinch 
+  //Pinch
   isScaling: boolean,
   initialDistance: number,
   initialTransform: ViewTransform,
   initialScale: number,
   initialTranslation: Point
 
-  //Pan 
+  //Pan
   isMoving: boolean,
   initialGestureState: { dx: number, dy: number }
 
@@ -89,39 +90,39 @@ export default class SvgPanZoom extends Component<Props, State> {
 
   prTargetSelf: any
   prTargetOuter: any
-  
+
   // Lifecycle methods
-  
+
   constructor(props: Props) {
     super(props);
-    
-    const vt = this.getInitialViewTransform(props.canvasWidth, props.canvasHeight, props.initialZoom)
-    
+
+    const vt = this.getInitialViewTransform(props.canvasWidth, props.canvasHeight, props.initialZoom, props.initialTranslation)
+
     this.state = {
       //Layout state
       layoutKnown: false,
       viewDimensions: { height: 0, width: 0, pageX: 0, pageY: 0 },
-      
+
       //ViewTransform state
       viewTransform: vt ,
-      
+
       isScaling: false,
       initialDistance: 1,
       initialTransform: createIdentityTransform(), //maybe null
       initialScale: props.initialZoom,
-      initialTranslation: { x: 0, y: 0 },
-      
+      initialTranslation: props.initialTranslation ? props.initialTranslation : { x: 0, y: 0 },
+
       isMoving: false,
       initialGestureState: { dx: 0, dy: 0 },
-      
+
       //ViewTransform animation state
       TranslationAnimation: new Animated.ValueXY({ x: vt.translateX, y: vt.translateY }),
       scaleAnimation: new Animated.Value(vt.scaleX),
     }
   }
-  
+
   dropNextEvt = 0
-  
+
   componentWillMount() {
     this.state.scaleAnimation.addListener((zoom)=> { this.props.onZoom(zoom.value) })
 
@@ -132,7 +133,7 @@ export default class SvgPanZoom extends Component<Props, State> {
       onMoveShouldSetPanResponderCapture: (evt, gestureState) => false,
       onPanResponderGrant: (evt, gestureState) => {
         // Set self for filtering events from other PanResponderTarges
-        if (this.prTargetSelf == null) { 
+        if (this.prTargetSelf == null) {
           if (this.prTargetOuter == null) { this.prTargetOuter = evt.currentTarget }
           if (evt.target !== evt.currentTarget) { this.prTargetSelf = evt.target }
         }
@@ -142,21 +143,21 @@ export default class SvgPanZoom extends Component<Props, State> {
 
         // console.log('evt: ' + evt.target + '*************')
 
-        if(this.dropNextEvt > 0) { 
+        if(this.dropNextEvt > 0) {
           this.dropNextEvt--
-          return 
+          return
         }
-        
+
         //Child element events are bubbled up but are not valid in out context. Sort them out
-        if (evt.target !== this.prTargetSelf && evt.target !== this.prTargetOuter){ 
+        if (evt.target !== this.prTargetSelf && evt.target !== this.prTargetOuter){
           this.dropNextEvt++
-          return 
+          return
         }
 
         //HACK: the native event has some glitches with far-off coordinates. Sort out the worst ones
-        if ((Math.abs(gestureState.vx) + Math.abs(gestureState.vx)) > 6) { 
+        if ((Math.abs(gestureState.vx) + Math.abs(gestureState.vx)) > 6) {
           this.dropNextEvt++
-          return 
+          return
         }
 
         if (touches.length === 2) {
@@ -227,7 +228,7 @@ export default class SvgPanZoom extends Component<Props, State> {
   }
 
   // Utils
-  
+
   _onLayout = (event) => {
     this.mainViewRef.measure((x, y, w, h, pageX, pageY) => {
 
@@ -245,11 +246,11 @@ export default class SvgPanZoom extends Component<Props, State> {
     })
   }
 
-  getInitialViewTransform(canvasWidth: number, canvasHeight, scale: number): ViewTransform {
+  getInitialViewTransform(canvasWidth: number, canvasHeight, scale: number, initialTranslation?: any): ViewTransform {
     return viewTransformMult(
       createTranslationMatrix(
-        -(canvasWidth - canvasWidth * scale) / 2,
-        -(canvasHeight - canvasHeight * scale) / 2
+        -(canvasWidth - canvasWidth * scale) / 2 + initialTranslation ? initialTranslation.x : 0,
+        -(canvasHeight - canvasHeight * scale) / 2 + initialTranslation ? initialTranslation.y : 0
       ),
       createScalingMatrix(scale)
     )
@@ -419,7 +420,7 @@ export default class SvgPanZoom extends Component<Props, State> {
       canvasHeight
     } = this.props
 
-    /*gestureState holds total displacement since pan started. 
+    /*gestureState holds total displacement since pan started.
       Here we calculate difference since last call of processTouch */
     const displacement = {
       x: (gestureState.dx - initialGestureState.dx) / viewTransform.scaleX,
