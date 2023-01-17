@@ -267,7 +267,7 @@ export class SvgPanZoom extends Component<Props, State> {
 
       setTimeout(() => {
         this.refreshViewTransform();
-      }, 0);
+      }, 100);
 
     });
 
